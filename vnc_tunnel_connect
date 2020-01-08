@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# *******************************************************************************
+# VNC Tunnel & Connect (vnc_tunnel_connect)
+#
+# Used to establish a SSH tunnel to a desired host, through a gateway, and then
+# execute a VNC client using the shared port number.
+#
+# Usage:
+#  vnc_tunnel_connect <id> <gateway> [<remote host>]
+#
+# Preconditions:
+#  The PATH must be pre-configured so that a tool called 'vncviewer' can be 
+#  found.
+#
+# Copyright (C) 2020 Brian Hill. All rights reserved
+# *******************************************************************************
+
+# Argument 1: The ID representing the local port. The VNC id translates to a 
+# port in the 5900 range. 
+id=${1:-1}
+port=$(printf 59%02d ${id})
+
+# Argument 2: The address of the gateway that will allow access to the remote host. 
+gateway=${2:-gate.metrics.ca}
+gateway_host=$(echo $gateway | cut -f2 -d@ | awk '{print $1}')
+
+# Argument 3: The name of the remote host that the VNC server is running on. 
+# Note: Use localhost, or omit, if the host is the same as the gateway.
+remote_host=${3:-localhost}
+
+# Define the pattern for cleaning up the SSH tunnel
+pattern=ssh.+${port}.+${gateway_host}
+
+# List any running tunnels, if found
+tunnels=$(pgrep -f $pattern -d:)
+if [ ! -z "$tunnels" ]; then
+    echo "Existing Tunnels ($tunnels)"
+fi
+
+echo "Connecting to ${remote_host} through ${gateway_host} on port ${port}"
+
+# Rerun the SSH tunnel
+pkill -f $pattern 
+ssh -L ${port}:${remote_host}:${port} $gateway -N -f
+
+# Activate the viewer
+vncviewer localhost:${id}
+
+# Clean up the SSH tunnel
+pkill -f $pattern 
