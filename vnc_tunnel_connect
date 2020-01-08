@@ -9,9 +9,15 @@
 # Usage:
 #  vnc_tunnel_connect <id> <gateway> [<remote host>]
 #
-# Preconditions:
-#  The PATH must be pre-configured so that a tool called 'vncviewer' can be 
-#  found.
+# Requirements:
+#  The following tools should be installed and accessible through the PATH 
+#  environment variable.
+#   awk
+#   cut
+#   pgrep
+#   pkill
+#   ssh
+#   vncviewer
 #
 # Copyright (C) 2020 Brian Hill. All rights reserved
 # *******************************************************************************
